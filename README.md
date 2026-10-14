@@ -100,7 +100,7 @@ Serwer działa wtedy bez Twojego komputera. Żadna z usług nie wymaga karty pł
    Możesz to pominąć i na start ustawić `REQUIRE_EMAIL_VERIFICATION=false` (rejestracja bez kodu z e-maila).
 4. **Render** (https://render.com) → *New → Blueprint* → wybierz repozytorium. Render odczyta [`render.yaml`](render.yaml)
    i poprosi o wartości: `DATABASE_URL` (z Neon), `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_USER`, `SMTP_PASS`,
-   `SMTP_FROM` (zweryfikowany nadawca, np. `LET\`SMEETUP <twoj@adres.pl>`). `JWT_SECRET` wygeneruje się sam.
+   `SMTP_FROM` (zweryfikowany nadawca, np. `LETSMEETUP <twoj@adres.pl>`). `JWT_SECRET` wygeneruje się sam.
    Migracje bazy wykonują się automatycznie przy każdym starcie.
 5. Sprawdź `https://<nazwa>.onrender.com/health` → `{"ok":true}`.
 6. Zbuduj aplikację z adresem serwera:
