@@ -85,14 +85,34 @@ Aby włączyć push w tle:
 
 ---
 
-## Wdrożenie (darmowe opcje)
+## Wdrożenie w chmurze (darmowe: Render + Neon + Brevo)
 
-- **Docker**: `docker compose up -d` uruchamia bazę, Mailpit i API (`backend/Dockerfile` sam stosuje migracje).
-- Hosting API z darmowym planem: np. Render, Railway, Fly.io; baza: np. Neon lub dowolny PostgreSQL.
-- SMTP: dowolny (np. Brevo — darmowy limit dzienny, Gmail SMTP z hasłem aplikacji).
-- Przed produkcją: długi losowy `JWT_SECRET`, HTTPS, własna konfiguracja podpisywania w `app/android/app/build.gradle.kts`.
+Serwer działa wtedy bez Twojego komputera. Żadna z usług nie wymaga karty płatniczej.
 
----
+1. **GitHub** — utwórz puste repozytorium (np. `letsmeetup`) i wypchnij kod:
+   ```bash
+   git remote add origin https://github.com/<login>/letsmeetup.git
+   git push -u origin main
+   ```
+2. **Neon** (https://neon.tech) — utwórz projekt (region: Frankfurt) i skopiuj *connection string*
+   (Dashboard → Connect, wersja bez „pooled”), np. `postgresql://user:hasło@ep-xxx.eu-central-1.aws.neon.tech/neondb?sslmode=require`.
+3. **Brevo** (https://www.brevo.com) — załóż konto, zweryfikuj adres nadawcy, a w *SMTP & API* wygeneruj klucz SMTP.
+   Możesz to pominąć i na start ustawić `REQUIRE_EMAIL_VERIFICATION=false` (rejestracja bez kodu z e-maila).
+4. **Render** (https://render.com) → *New → Blueprint* → wybierz repozytorium. Render odczyta [`render.yaml`](render.yaml)
+   i poprosi o wartości: `DATABASE_URL` (z Neon), `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_USER`, `SMTP_PASS`,
+   `SMTP_FROM` (zweryfikowany nadawca, np. `LET\`SMEETUP <twoj@adres.pl>`). `JWT_SECRET` wygeneruje się sam.
+   Migracje bazy wykonują się automatycznie przy każdym starcie.
+5. Sprawdź `https://<nazwa>.onrender.com/health` → `{"ok":true}`.
+6. Zbuduj aplikację z adresem serwera:
+   ```bash
+   cd app
+   flutter build apk --release --dart-define=API_URL=https://<nazwa>.onrender.com
+   ```
+
+**Ograniczenia planów darmowych:** serwer na Render Free usypia po 15 min bez ruchu, a pierwsze żądanie po przerwie
+trwa ok. 1 minuty (aplikacja w tym czasie działa offline i sama się zsynchronizuje). Żeby tego uniknąć, ustaw darmowy
+ping co 10 min na `/health` (np. https://cron-job.org) — limit 750 h/mies. wystarcza na jeden serwer działający cały czas.
+Neon Free: 0,5 GB danych. Avatary są przechowywane w bazie (Render Free nie ma trwałego dysku).
 
 ## API w skrócie
 
