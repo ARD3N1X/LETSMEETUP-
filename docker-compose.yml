@@ -1,0 +1,42 @@
+# LET`SMEETUP — lokalne środowisko: PostgreSQL + Mailpit (+ opcjonalnie API w kontenerze)
+#   docker compose up -d db mail        → baza i skrzynka testowa (http://localhost:8025)
+#   docker compose up -d                → dodatkowo API na http://localhost:3000
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: letsmeetup
+      POSTGRES_PASSWORD: letsmeetup
+      POSTGRES_DB: letsmeetup
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U letsmeetup"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mail:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  api:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://letsmeetup:letsmeetup@db:5432/letsmeetup?schema=public
+      PUBLIC_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me-please}
+      SMTP_HOST: mail
+      SMTP_PORT: 1025
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

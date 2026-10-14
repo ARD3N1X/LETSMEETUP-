@@ -1,0 +1,31 @@
+# Render Blueprint — API LET`SMEETUP (plan Free, bez karty płatniczej).
+# Render → New → Blueprint → wskaż to repozytorium. Baza: Neon (darmowy PostgreSQL).
+services:
+  - type: web
+    name: letsmeetup-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Connection string z Neon (Dashboard → Connect), z ?sslmode=require na końcu.
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # E-mail z kodami (np. Brevo: smtp-relay.brevo.com, port 587). Bez SMTP ustaw REQUIRE_EMAIL_VERIFICATION=false.
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: REQUIRE_EMAIL_VERIFICATION
+        value: "true"

@@ -1,0 +1,9 @@
+# Zbudowane aplikacje
+*.apk
+*.aab
+
+# Edytory / system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GroupRole {
+  admin
+  member
+}
+
+enum CodePurpose {
+  verify_email
+  reset_password
+}
+
+model User {
+  id                     String    @id @default(uuid()) @db.Uuid
+  email                  String    @unique
+  passwordHash           String    @map("password_hash")
+  displayName            String    @map("display_name") @db.VarChar(50)
+  avatarUrl              String?   @map("avatar_url")
+  emailVerifiedAt        DateTime? @map("email_verified_at") @db.Timestamptz
+  themeMode              String    @default("system") @map("theme_mode")
+  accentColor            String    @default("#4FC3F7") @map("accent_color")
+  defaultEventColor      String    @default("#87CEEB") @map("default_event_color")
+  language               String    @default("pl")
+  pushEnabled            Boolean   @default(true) @map("push_enabled")
+  remindersEnabled       Boolean   @default(true) @map("reminders_enabled")
+  defaultReminderMinutes Int       @default(15) @map("default_reminder_minutes")
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  memberships   GroupMember[]
+  events        Event[]
+  createdGroups Group[]
+  devices       DeviceToken[]
+  refreshTokens RefreshToken[]
+  emailCodes    EmailCode[]
+  avatar        Avatar?
+
+  @@map("users")
+}
+
+/// Avatar przechowywany w bazie (256×256 WebP, ~10–20 KB) — hosting bez trwałego dysku (np. Render Free).
+model Avatar {
+  userId    String   @id @map("user_id") @db.Uuid
+  data      Bytes
+  mimeType  String   @default("image/webp") @map("mime_type")
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("avatars")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model EmailCode {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  purpose   CodePurpose
+  codeHash  String      @map("code_hash")
+  attempts  Int         @default(0)
+  expiresAt DateTime    @map("expires_at") @db.Timestamptz
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@map("email_codes")
+}
+
+model DeviceToken {
+  token     String   @id
+  userId    String   @map("user_id") @db.Uuid
+  platform  String
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+model Group {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String        @db.VarChar(100)
+  description String?       @db.VarChar(500)
+  color       String        @default("#F49AC2")
+  inviteCode  String        @unique @map("invite_code") @db.VarChar(8)
+  createdById String        @map("created_by") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  createdBy   User          @relation(fields: [createdById], references: [id])
+  members     GroupMember[]
+  events      Event[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id       String    @id @default(uuid()) @db.Uuid
+  groupId  String    @map("group_id") @db.Uuid
+  userId   String    @map("user_id") @db.Uuid
+  role     GroupRole @default(member)
+  joinedAt DateTime  @default(now()) @map("joined_at") @db.Timestamptz
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@map("group_members")
+}
+
+/// Wydarzenie. Dla allDay=true startAt/endAt to północ UTC danego dnia kalendarzowego
+/// (data bez strefy czasowej). Dla zwykłych wydarzeń — chwila w czasie (UTC).
+model Event {
+  id          String           @id @db.Uuid
+  title       String           @db.VarChar(200)
+  description String?          @db.VarChar(2000)
+  location    String?          @db.VarChar(200)
+  createdById String           @map("created_by") @db.Uuid
+  groupId     String?          @map("group_id") @db.Uuid
+  startAt     DateTime         @map("start_at") @db.Timestamptz
+  endAt       DateTime?        @map("end_at") @db.Timestamptz
+  allDay      Boolean          @default(false) @map("all_day")
+  color       String           @default("#87CEEB")
+  /// { freq, interval, until?, count?, byWeekDay?, byMonthDay? } — byWeekDay w ISO (1=pon … 7=ndz)
+  recurrence  Json?
+  version     Int              @default(1)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime         @default(now()) @map("updated_at") @db.Timestamptz
+  createdBy   User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  group       Group?           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  exceptions  EventException[]
+
+  @@index([groupId])
+  @@index([createdById])
+  @@index([startAt])
+  @@index([updatedAt])
+  @@map("events")
+}
+
+/// Wyjątek pojedynczego wystąpienia wydarzenia powtarzającego się (override lub odwołanie).
+model EventException {
+  id           String    @id @default(uuid()) @db.Uuid
+  eventId      String    @map("event_id") @db.Uuid
+  /// Oryginalna data wystąpienia w formacie YYYY-MM-DD (lokalna data kalendarzowa).
+  originalDate String    @map("original_date") @db.VarChar(10)
+  cancelled    Boolean   @default(false)
+  title        String?   @db.VarChar(200)
+  color        String?
+  startAt      DateTime? @map("start_at") @db.Timestamptz
+  endAt        DateTime? @map("end_at") @db.Timestamptz
+  event        Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, originalDate])
+  @@map("event_exceptions")
+}
+
+/// Informacja o usunięciu wydarzenia (albo przeniesieniu go z grupy) dla synchronizacji przyrostowej.
+model EventTombstone {
+  id        BigInt   @id @default(autoincrement())
+  eventId   String   @map("event_id") @db.Uuid
+  /// Grupa, której członkowie mają usunąć wydarzenie (null = wydarzenie prywatne).
+  groupId   String?  @map("group_id") @db.Uuid
+  /// Właściciel wydarzenia (dla wydarzeń prywatnych).
+  ownerId   String?  @map("owner_id") @db.Uuid
+  deletedAt DateTime @default(now()) @map("deleted_at") @db.Timestamptz
+
+  @@index([deletedAt])
+  @@map("event_tombstones")
+}
