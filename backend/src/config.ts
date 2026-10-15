@@ -28,6 +28,8 @@ export const config = {
     pass: process.env.SMTP_PASS ?? '',
     from: process.env.SMTP_FROM ?? 'LET`SMEETUP <no-reply@letsmeetup.local>',
   },
+  /** Klucz API Brevo (wysyłka przez HTTPS zamiast SMTP). */
+  brevoApiKey: process.env.BREVO_API_KEY ?? '',
   requireEmailVerification: (process.env.REQUIRE_EMAIL_VERIFICATION ?? 'true') !== 'false',
   firebaseServiceAccountFile: process.env.FIREBASE_SERVICE_ACCOUNT_FILE ?? '',
   maxGroupMembers: num('MAX_GROUP_MEMBERS', 100),

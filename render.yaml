@@ -16,7 +16,11 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
-      # E-mail z kodami (np. Brevo: smtp-relay.brevo.com, port 587). Bez SMTP ustaw REQUIRE_EMAIL_VERIFICATION=false.
+      # E-mail z kodami. Render Free blokuje porty SMTP, więc używamy API HTTP Brevo:
+      # Brevo → SMTP & API → API Keys → Generate. SMTP_FROM = zweryfikowany nadawca w Brevo.
+      - key: BREVO_API_KEY
+        sync: false
+      # SMTP (alternatywa dla płatnych planów / innych hostingów).
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

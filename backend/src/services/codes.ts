@@ -1,4 +1,5 @@
 import type { CodePurpose, User } from '@prisma/client';
+import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { randomDigits, sha256 } from '../lib/crypto.js';
 import { badRequest } from '../lib/errors.js';
@@ -16,7 +17,9 @@ export async function sendCode(user: User, purpose: CodePurpose) {
     }),
   ]);
   const mail = codeMail(user.language, purpose, code);
-  await sendMail(user.email, mail.subject, mail.text);
+  // Wysyłka w tle — odpowiedź HTTP nie czeka na serwer pocztowy (sendMail sam loguje błędy).
+  const delivery = sendMail(user.email, mail.subject, mail.text);
+  if (config.isTest) await delivery;
 }
 
 export async function consumeCode(userId: string, purpose: CodePurpose, code: string) {
