@@ -26,7 +26,8 @@ export const config = {
     port: num('SMTP_PORT', 587),
     user: process.env.SMTP_USER ?? '',
     pass: process.env.SMTP_PASS ?? '',
-    from: process.env.SMTP_FROM ?? 'LET`SMEETUP <no-reply@letsmeetup.local>',
+    // Puste pole w panelu hostingu = brak wartości; obcinamy też cudzysłowy wokół całości.
+    from: (process.env.SMTP_FROM || 'LET`SMEETUP <no-reply@letsmeetup.local>').trim().replace(/^["']|["']$/g, ''),
   },
   /** Klucz API Brevo (wysyłka przez HTTPS zamiast SMTP). */
   // Obcięcie spacji/cudzysłowów, które łatwo wkleić razem z kluczem w panelu hostingu.

@@ -35,7 +35,7 @@ async function sendViaBrevoApi(to: string, subject: string, text: string) {
   if (!res.ok) {
     const hint = config.brevoApiKey.startsWith('xsmtpsib-')
       ? ' (to klucz SMTP — potrzebny jest klucz API "xkeysib-…" z Brevo → SMTP & API → API Keys)'
-      : '';
+      : ` (nadawca: "${config.smtp.from}" — musi być zweryfikowany w Brevo → Senders)`;
     throw new Error(`Brevo API ${res.status}: ${await res.text()}${hint}`);
   }
 }
