@@ -57,13 +57,13 @@ npm test
 cd app
 flutter pub get
 dart run build_runner build      # generuje kod Drift (lib/data/local/database.g.dart)
-flutter run                      # emulator Androida łączy się z http://10.0.2.2:3000
+flutter run                      # domyślnie serwer w chmurze: https://letsmeetup-api.onrender.com
 ```
 
-Inny adres serwera (np. telefon w tej samej sieci Wi-Fi albo serwer produkcyjny):
+Lokalny serwer z emulatora Androida (wymaga zezwolenia na HTTP w debug — jest w `android/app/src/debug`):
 
 ```bash
-flutter run --dart-define=API_URL=http://192.168.1.20:3000
+flutter run --dart-define=API_URL=http://10.0.2.2:3000
 ```
 
 Testy: `flutter test`

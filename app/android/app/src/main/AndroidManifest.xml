@@ -4,12 +4,10 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
 
-    <!-- HTTP dozwolone do testów w sieci lokalnej. Przy serwerze z HTTPS usuń usesCleartextTraffic. -->
     <application
         android:label="LET`SMEETUP"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"
