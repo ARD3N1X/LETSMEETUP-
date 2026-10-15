@@ -32,7 +32,12 @@ async function sendViaBrevoApi(to: string, subject: string, text: string) {
     body: JSON.stringify({ sender: parseSender(config.smtp.from), to: [{ email: to }], subject, textContent: text }),
     signal: AbortSignal.timeout(15_000),
   });
-  if (!res.ok) throw new Error(`Brevo API ${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    const hint = config.brevoApiKey.startsWith('xsmtpsib-')
+      ? ' (to klucz SMTP — potrzebny jest klucz API "xkeysib-…" z Brevo → SMTP & API → API Keys)'
+      : '';
+    throw new Error(`Brevo API ${res.status}: ${await res.text()}${hint}`);
+  }
 }
 
 /** Ostatnio wysłane maile — używane wyłącznie w testach. */

@@ -29,7 +29,8 @@ export const config = {
     from: process.env.SMTP_FROM ?? 'LET`SMEETUP <no-reply@letsmeetup.local>',
   },
   /** Klucz API Brevo (wysyłka przez HTTPS zamiast SMTP). */
-  brevoApiKey: process.env.BREVO_API_KEY ?? '',
+  // Obcięcie spacji/cudzysłowów, które łatwo wkleić razem z kluczem w panelu hostingu.
+  brevoApiKey: (process.env.BREVO_API_KEY ?? '').trim().replace(/^["']|["']$/g, ''),
   requireEmailVerification: (process.env.REQUIRE_EMAIL_VERIFICATION ?? 'true') !== 'false',
   firebaseServiceAccountFile: process.env.FIREBASE_SERVICE_ACCOUNT_FILE ?? '',
   maxGroupMembers: num('MAX_GROUP_MEMBERS', 100),
