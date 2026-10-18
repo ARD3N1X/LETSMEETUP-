@@ -1,0 +1,65 @@
+# Budowanie aplikacji na iPhone'a (iOS) na darmowym macOS od GitHuba.
+# Wynik: plik LETSMEETUP.ipa (niepodpisany) — instalacja przez Sideloadly/AltStore z własnym Apple ID.
+# Uruchamia się po zmianach w app/ albo ręcznie: Actions → iOS build → Run workflow.
+name: iOS build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/ios.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.1
+          cache: true
+
+      - name: Pobranie zależności
+        working-directory: app
+        run: flutter pub get
+
+      - name: Budowanie (bez podpisu)
+        working-directory: app
+        run: flutter build ios --release --no-codesign
+
+      - name: Pakowanie do .ipa
+        run: |
+          cd app/build/ios/iphoneos
+          mkdir -p Payload
+          cp -R Runner.app Payload/
+          zip -qry LETSMEETUP.ipa Payload
+          ls -lh LETSMEETUP.ipa
+
+      - name: Plik do pobrania (Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: LETSMEETUP-ios
+          path: app/build/ios/iphoneos/LETSMEETUP.ipa
+          retention-days: 30
+
+      # Stały link do najnowszej wersji: Releases → "iOS (najnowsza)".
+      - name: Publikacja w Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ios-latest
+          name: iOS (najnowsza)
+          body: |
+            Najnowsza wersja LET`SMEETUP na iPhone'a (plik .ipa, niepodpisany).
+            Instalacja: Sideloadly (Windows/Mac) z własnym Apple ID — instrukcja w README.
+            Commit: ${{ github.sha }}
+          prerelease: true
+          make_latest: false
+          files: app/build/ios/iphoneos/LETSMEETUP.ipa
