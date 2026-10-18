@@ -1,6 +1,7 @@
 # Zbudowane aplikacje
 *.apk
 *.aab
+*.ipa
 
 # Edytory / system
 .vscode/
