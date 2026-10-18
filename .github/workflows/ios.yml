@@ -33,7 +33,18 @@ jobs:
 
       - name: Budowanie (bez podpisu)
         working-directory: app
-        run: flutter build ios --release --no-codesign
+        run: |
+          set -o pipefail
+          flutter build ios --release --no-codesign 2>&1 | tee build.log
+
+      # Logi Actions wymagają zalogowania — przy błędzie wypisujemy końcówkę jako publiczną adnotację.
+      - name: Błąd budowania (podsumowanie)
+        if: failure()
+        working-directory: app
+        run: |
+          errors=$(grep -iE "error|failed|requires|minimum" build.log | grep -v "^\s*$" | tail -25 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=flutter build ios::${errors}"
+          tail -40 build.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}' | xargs -0 -I{} echo "::error title=build.log (koniec)::{}"
 
       - name: Pakowanie do .ipa
         run: |

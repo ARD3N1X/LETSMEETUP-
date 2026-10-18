@@ -70,6 +70,24 @@ Testy: `flutter test`
 
 ---
 
+## iPhone (iOS 15+)
+
+Aplikację na iOS buduje automatycznie GitHub Actions na macOS ([`.github/workflows/ios.yml`](.github/workflows/ios.yml)) —
+po każdej zmianie w `app/` albo ręcznie: *Actions → iOS build → Run workflow*. Plik `LETSMEETUP.ipa` jest w
+**Releases → „iOS (najnowsza)”**.
+
+Instalacja bez płatnego konta Apple Developer (Sideloadly, Windows):
+
+1. Zainstaluj **iTunes** i **iCloud** ze strony Apple (wersje „spoza Microsoft Store”), potem **Sideloadly** (https://sideloadly.io).
+2. Podłącz iPhone'a kablem, odblokuj go i potwierdź „Ufaj temu komputerowi”.
+3. W Sideloadly przeciągnij `LETSMEETUP.ipa`, wpisz swój Apple ID i kliknij **Start** (Apple może poprosić o kod 2FA).
+4. Na iPhonie: *Ustawienia → Ogólne → VPN i zarządzanie urządzeniem* → swój Apple ID → **Ufaj**.
+   W iOS 16+ włącz też *Ustawienia → Prywatność i ochrona → Tryb dewelopera* (telefon się zrestartuje).
+
+Ograniczenia darmowego Apple ID: aplikacja działa **7 dni**, potem trzeba ją ponownie zainstalować w Sideloadly
+(dane zostają); maks. 3 takie aplikacje na urządzeniu. Bez tych ograniczeń — przez **TestFlight** (Apple Developer Program, 99 USD/rok),
+który pozwala też łatwo udostępnić aplikację znajomym.
+
 ## Powiadomienia push (opcjonalnie, darmowe FCM)
 
 Aplikacja i serwer działają bez Firebase — powiadomienia o aktywności grup są wtedy pokazywane,
